@@ -157,6 +157,7 @@ class Player
 
                 gameIntel.Add(new()
                 {
+                    cellNumber = i,
                     resources = resource,
                     myAnt = (myAnts > 0),
                     myAntsAmount = myAnts,
@@ -164,13 +165,11 @@ class Player
                 });
             }
 
-
-
-            cwe("started");
+            //cwe("started");
             // on the start location place a becon        
             cw(Play(gameState,gameIntel));
 
-            cwe("Debug message");
+            //cwe("Debug message");
 
 
             // WAIT | LINE <sourceIdx> <targetIdx> <strength> | BEACON <cellIdx> <strength> | MESSAGE <text>
@@ -181,25 +180,17 @@ class Player
     public static string Play(State gameState,List<Intel> gameIntel)
     {
         // find the high resource and get back
-        var locationOfMaxResource = gameIntel.Where(x => x.resources == gameIntel.Max(x => x.resources)).ToList();
+        //var locationOfMaxResource = gameIntel.Where(x => x.resources == gameIntel.Max(x => x.resources)).ToList();
         
         var command = new StringBuilder();        
 
-        foreach (var myInitBase in gameState.bases.myBases)
-        {
-            command.Append(BEACON).Append(" ");
-            command.Append(myInitBase).Append(" ").Append("1");
-            command.Append(EOA);
-        }
+        // foreach (var myInitBase in gameState.bases.myBases)
+        // {
+        //     command.Append(BEACON).Append(" ");
+        //     command.Append(myInitBase).Append(" ").Append("1");
+        //     command.Append(EOA);
+        // }
        
-        // if it has type 2 i need to collect it
-        foreach(var location in locationOfMaxResource)
-        {
-            command.Append(BEACON).Append(" ");
-            command.Append(location.cellNumber).Append(" ").Append("1");
-            command.Append(EOA);
-        }
-
         foreach(var intel in gameIntel)
         {
             if (intel.myAnt)
@@ -209,9 +200,18 @@ class Player
                 command.Append(EOA);
             }
         }
+        
+        // if it has type 2 i need to collect it
+        foreach(var location in gameIntel)
+        {
+            command.Append(BEACON).Append(" ");
+            command.Append(location.resources).Append(" ").Append("2");
+            command.Append(EOA);
+        }
+
 
         command.Append(MESSAGE);
-        command.Append(" something");
+        command.Append(" ").Append("something");
         command.Append(EOA);
 
         return command.ToString();
