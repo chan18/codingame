@@ -20,10 +20,7 @@ public class State
     public List<int> cellNumber {get; set;} = new();
 
     // 0 for empty, 1 for eggs, 2 for crystal
-    public CellType cellType {get; set;}   
-
-    // the initial amount of eggs/crystals on this cell
-    public int initialResources {get; set;}
+    public List<CellType> cellTypes {get; set;}   = new();
 
      // the index of the neighbouring cell for each direction
     public List<int> neighbouring {get; set;} = new();
@@ -41,7 +38,17 @@ public class Base
 
 }
 
-public enum CellType
+public class CellType
+{
+    // the initial amount of eggs/crystals on this cell
+    public int initialResources {get; set;}
+
+    public int cellINdex {get; set;}
+    public CType cellType {get; set;}
+
+}
+
+public enum CType
 {
     Empty = 0,
     Eggs = 1,
@@ -104,8 +111,12 @@ class Player
             int neigh5 = int.Parse(inputs[7]);
 
             gameState.cellNumber.Add(i);
-            gameState.initialResources = initialResources;
-            gameState.cellType = (CellType)type;
+
+            gameState.cellTypes.Add(new() {
+                initialResources = initialResources,
+                cellINdex = i,
+                cellType = (CType)type,
+            });
 
             gameState.neighbouring.Add(neigh0);
             gameState.neighbouring.Add(neigh1);
@@ -181,6 +192,9 @@ class Player
     {
         // find the high resource and get back
         //var locationOfMaxResource = gameIntel.Where(x => x.resources == gameIntel.Max(x => x.resources)).ToList();
+        var crystalCells = gameState.cellTypes.Where(x => x.cellType == CType.Crystal);
+
+         var lineCommands = crystalCells.Select(cell => $"LINE {gameState.bases.myBases.FirstOrDefault()} {cell.cellINdex} {cell.initialResources}");
         
         var command = new StringBuilder();        
 
@@ -191,23 +205,36 @@ class Player
         //     command.Append(EOA);
         // }
        
-        foreach(var intel in gameIntel)
+        // foreach(var intel in gameIntel)
+        // {
+        //     if (intel.myAnt)
+        //     {
+        //         command.Append(BEACON).Append(" ");
+        //         command.Append(intel.cellNumber).Append(" ").Append("1");
+        //         command.Append(EOA);
+        //     }
+        // }
+
+
+        foreach(var cell in crystalCells)
         {
-            if (intel.myAnt)
-            {
-                command.Append(BEACON).Append(" ");
-                command.Append(intel.cellNumber).Append(" ").Append("1");
-                command.Append(EOA);
-            }
+                  command.Append(LINE)
+                         .Append(" ")
+                         .Append(gameState.bases.myBases.FirstOrDefault())                         
+                         .Append(" ")
+                         .Append(cell.cellINdex)                         
+                         .Append(" ")
+                         .Append(cell.initialResources)
+                         .Append(EOA);
         }
-        
-        // if it has type 2 i need to collect it
-        foreach(var location in gameIntel)
-        {
-            command.Append(BEACON).Append(" ");
-            command.Append(location.resources).Append(" ").Append("2");
-            command.Append(EOA);
-        }
+
+        // // if it has type 2 i need to collect it
+        // foreach(var location in gameIntel)
+        // {
+        //     command.Append(BEACON).Append(" ");
+        //     command.Append(location.resources).Append(" ").Append("2");
+        //     command.Append(EOA);
+        // }
 
 
         command.Append(MESSAGE);
