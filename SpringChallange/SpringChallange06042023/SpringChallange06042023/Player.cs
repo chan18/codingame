@@ -54,9 +54,11 @@ public class Intel
     public int cellNumber {get; set;}
     // the current amount of eggs/crystals on this cell
     public int resources {get; set;}
-    public int myAnts {get; set;}
-    public int oppAnts {get; set;}
+    public int myAntsAmount {get; set;}
+    public bool myAnt {get; set;}
+    public int oppAntsAmount {get; set;}
 }
+
 
 class Player
 {
@@ -70,8 +72,8 @@ class Player
     static void Main(string[] args)
     {
         string[] inputs;
-        var gameIntel = new List<Intel>();
         var gameState = new State();
+        var gameIntel = new List<Intel>();
 
         // Write an action using Console.WriteLine()
         Action<String> cw = Console.WriteLine;
@@ -134,6 +136,7 @@ class Player
         // game loop
         while (true)
         {
+            var resources = new List<(int r, int ci,int myAnts)>();
 
             // reading game inputes.
             for (int i = 0; i < numberOfCells; i++)
@@ -141,19 +144,32 @@ class Player
                 inputs = Console.ReadLine().Split(' ');
 
                 // the current amount of eggs/crystals on this cell
-                int resources = int.Parse(inputs[0]);
+                int resource = int.Parse(inputs[0]);
+
 
                 // the amount of your ants on this cell
                 int myAnts = int.Parse(inputs[1]);
 
+                resources.Add(new(resource,i,myAnts));
+
                 // the amount of opponent ants on this cell
                 int oppAnts = int.Parse(inputs[2]);
+
+                gameIntel.Add(new()
+                {
+                    resources = resource,
+                    myAnt = (myAnts > 0),
+                    myAntsAmount = myAnts,
+                    oppAntsAmount = oppAnts,
+                });
             }
 
+
+
             cwe("started");
-        
-            cw(Play());
-            
+            // on the start location place a becon        
+            cw(Play(gameState,gameIntel));
+
             cwe("Debug message");
 
 
@@ -162,15 +178,37 @@ class Player
         }
     }
 
-    public static string Play()
+    public static string Play(State gameState,List<Intel> gameIntel)
     {
-        var command = new StringBuilder();
+        // find the high resource and get back
+        var locationOfMaxResource = gameIntel.Where(x => x.resources == gameIntel.Max(x => x.resources)).ToList();
+        
+        var command = new StringBuilder();        
 
+        foreach (var myInitBase in gameState.bases.myBases)
+        {
+            command.Append(BEACON).Append(" ");
+            command.Append(myInitBase).Append(" ").Append("1");
+            command.Append(EOA);
+        }
+       
         // if it has type 2 i need to collect it
+        foreach(var location in locationOfMaxResource)
+        {
+            command.Append(BEACON).Append(" ");
+            command.Append(location.cellNumber).Append(" ").Append("1");
+            command.Append(EOA);
+        }
 
-        command.Append(BEACON);
-        command.Append(" 0 1");
-        command.Append(EOA);
+        foreach(var intel in gameIntel)
+        {
+            if (intel.myAnt)
+            {
+                command.Append(BEACON).Append(" ");
+                command.Append(intel.cellNumber).Append(" ").Append("1");
+                command.Append(EOA);
+            }
+        }
 
         command.Append(MESSAGE);
         command.Append(" something");
