@@ -15,20 +15,29 @@ namespace SpringChallange06042023;
  
 public class State
 {
+    // amount of hexagonal cells in this map
     public int numberOfCells {get; set;}
-    public CellType cellType {get; set;}
-    public List<Base> bases {get; set;} = new();
-    public List<int> neighbouring {get; set;} = new();
-    public List<Intel> gameIntel {get; set;} = new();
+    public List<int> cellNumber {get; set;} = new();
 
+    // 0 for empty, 1 for eggs, 2 for crystal
+    public CellType cellType {get; set;}   
+
+    // the initial amount of eggs/crystals on this cell
+    public int initialResources {get; set;}
+
+     // the index of the neighbouring cell for each direction
+    public List<int> neighbouring {get; set;} = new();
+
+    public int numberOfBases {get; set;}
+    public Base bases {get; set;} = new();
+    public List<Intel> gameIntel {get; set;} = new();
 }
 
 public class Base
-{
-    public List<(int x,int y)> point {get; set;} = new();
-    public int numberOfBases {get; set;}
-    public List<int> myBases {get; set;}
-    public List<int> myOppBases {get; set;}
+{    
+    //public List<(int x,int y)> point {get; set;} = new();
+    public List<int> myBases {get; set;} = new();
+    public List<int> myOppBases {get; set;} = new();
 
 }
 
@@ -42,7 +51,8 @@ public enum CellType
 
 public class Intel
 {
-    public (int x,int y) point {get; set;}
+    public int cellNumber {get; set;}
+    // the current amount of eggs/crystals on this cell
     public int resources {get; set;}
     public int myAnts {get; set;}
     public int oppAnts {get; set;}
@@ -61,6 +71,7 @@ class Player
     {
         string[] inputs;
         var gameIntel = new List<Intel>();
+        var gameState = new State();
 
         // Write an action using Console.WriteLine()
         Action<String> cw = Console.WriteLine;
@@ -70,6 +81,7 @@ class Player
 
         // amount of hexagonal cells in this map
         int numberOfCells = int.Parse(Console.ReadLine());
+        gameState.numberOfCells = numberOfCells;
 
         for (int i = 0; i < numberOfCells; i++)
         {
@@ -88,21 +100,35 @@ class Player
             int neigh3 = int.Parse(inputs[5]);
             int neigh4 = int.Parse(inputs[6]);
             int neigh5 = int.Parse(inputs[7]);
+
+            gameState.cellNumber.Add(i);
+            gameState.initialResources = initialResources;
+            gameState.cellType = (CellType)type;
+
+            gameState.neighbouring.Add(neigh0);
+            gameState.neighbouring.Add(neigh1);
+            gameState.neighbouring.Add(neigh2);
+            gameState.neighbouring.Add(neigh3);
+            gameState.neighbouring.Add(neigh4);
+            gameState.neighbouring.Add(neigh5);
         }
 
         int numberOfBases = int.Parse(Console.ReadLine());
+        gameState.numberOfBases = numberOfBases;
 
         inputs = Console.ReadLine().Split(' ');
 
         for (int i = 0; i < numberOfBases; i++)
         {
             int myBaseIndex = int.Parse(inputs[i]);
+            gameState.bases.myBases.Add(myBaseIndex);
         }
 
         inputs = Console.ReadLine().Split(' ');
         for (int i = 0; i < numberOfBases; i++)
         {
-            int oppBaseIndex = int.Parse(inputs[i]);
+            int oppBaseIndex = int.Parse(inputs[i]);            
+            gameState.bases.myOppBases.Add(oppBaseIndex);
         }
 
         // game loop
@@ -125,10 +151,9 @@ class Player
             }
 
             cwe("started");
-
         
             cw(Play());
-
+            
             cwe("Debug message");
 
 
@@ -140,6 +165,8 @@ class Player
     public static string Play()
     {
         var command = new StringBuilder();
+
+        // if it has type 2 i need to collect it
 
         command.Append(BEACON);
         command.Append(" 0 1");
